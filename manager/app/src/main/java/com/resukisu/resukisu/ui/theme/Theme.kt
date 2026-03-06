@@ -23,6 +23,7 @@ import androidx.compose.material3.MotionScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
@@ -53,6 +54,10 @@ import com.kyant.m3color.scheme.SchemeTonalSpot
 import com.resukisu.resukisu.ui.theme.util.BackgroundTransformation
 import com.resukisu.resukisu.ui.theme.util.saveTransformedBackground
 import com.resukisu.resukisu.ui.webui.MonetColorsProvider
+import com.kyant.backdrop.backdrops.LayerBackdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import com.resukisu.resukisu.ui.util.LocalWallpaperBackdrop
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.launch
 import java.io.File
@@ -285,9 +290,12 @@ fun KernelSUTheme(
         typography = Typography
     ) {
         MonetColorsProvider.UpdateCss()
-        Box(modifier = Modifier.fillMaxSize()) {
-            BackgroundLayer(darkTheme)
-            content()
+        val wallpaperBackdrop = rememberLayerBackdrop()
+        CompositionLocalProvider(LocalWallpaperBackdrop provides wallpaperBackdrop) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                BackgroundLayer(darkTheme, wallpaperBackdrop)
+                content()
+            }
         }
     }
 }
@@ -331,7 +339,7 @@ private fun ThemeInitializer(context: Context, systemIsDark: Boolean) {
 }
 
 @Composable
-private fun BackgroundLayer(darkTheme: Boolean) {
+private fun BackgroundLayer(darkTheme: Boolean, wallpaperBackdrop: LayerBackdrop) {
     val backgroundUri = rememberSaveable { mutableStateOf(ThemeConfig.customBackgroundUri) }
 
     LaunchedEffect(ThemeConfig.customBackgroundUri) {
@@ -350,12 +358,12 @@ private fun BackgroundLayer(darkTheme: Boolean) {
 
     // 自定义背景
     backgroundUri.value?.let { uri ->
-        CustomBackgroundLayer(uri = uri, darkTheme = darkTheme)
+        CustomBackgroundLayer(uri = uri, darkTheme = darkTheme, wallpaperBackdrop = wallpaperBackdrop)
     }
 }
 
 @Composable
-private fun CustomBackgroundLayer(uri: Uri, darkTheme: Boolean) {
+private fun CustomBackgroundLayer(uri: Uri, darkTheme: Boolean, wallpaperBackdrop: LayerBackdrop) {
     val painter = rememberAsyncImagePainter(
         model = uri,
         onError = { error ->
@@ -389,6 +397,7 @@ private fun CustomBackgroundLayer(uri: Uri, darkTheme: Boolean) {
             .fillMaxSize()
             .zIndex(-1f)
             .alpha(alpha)
+            .layerBackdrop(wallpaperBackdrop)
     ) {
         val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
         // 背景图片

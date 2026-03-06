@@ -69,6 +69,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
+import com.resukisu.resukisu.ui.component.LiquidGlassCard
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -102,7 +103,6 @@ import com.resukisu.resukisu.ui.component.KsuIsValid
 import com.resukisu.resukisu.ui.component.WarningCard
 import com.resukisu.resukisu.ui.component.rememberConfirmDialog
 import com.resukisu.resukisu.ui.screen.LabelText
-import com.resukisu.resukisu.ui.theme.CardConfig.cardElevation
 import com.resukisu.resukisu.ui.theme.ThemeConfig
 import com.resukisu.resukisu.ui.theme.getCardColors
 import com.resukisu.resukisu.ui.theme.getCardElevation
@@ -436,12 +436,9 @@ private fun StatusCard(
     systemStatus: HomeViewModel.SystemStatus,
     onClickInstall: () -> Unit = {}
 ) {
-    ElevatedCard(
-        colors = getCardColors(
-            if (systemStatus.ksuVersion != null) MaterialTheme.colorScheme.secondaryContainer
-            else MaterialTheme.colorScheme.errorContainer
-        ),
-        elevation = getCardElevation(),
+    LiquidGlassCard(
+        tint = if (systemStatus.ksuVersion != null) MaterialTheme.colorScheme.secondaryContainer
+               else MaterialTheme.colorScheme.errorContainer,
     ) {
         Row(
             modifier = Modifier
@@ -594,9 +591,8 @@ fun LearnMoreCard() {
     val uriHandler = LocalUriHandler.current
     val url = stringResource(R.string.home_learn_kernelsu_url)
 
-    ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHighest),
-        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+    LiquidGlassCard(
+        tint = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Row(
             modifier = Modifier
@@ -627,9 +623,8 @@ fun LearnMoreCard() {
 fun DonateCard() {
     val uriHandler = LocalUriHandler.current
 
-    ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHighest),
-        elevation = getCardElevation(),
+    LiquidGlassCard(
+        tint = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Row(
             modifier = Modifier
@@ -666,9 +661,8 @@ private fun InfoCard(
     showKpmInfo: Boolean,
     lkmMode: Boolean?
 ) {
-    ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHighest),
-        elevation = getCardElevation(),
+    LiquidGlassCard(
+        tint = MaterialTheme.colorScheme.surfaceContainerHighest,
     ) {
         Column(
             modifier = Modifier

@@ -36,10 +36,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.resukisu.resukisu.ui.MainActivity
+import com.resukisu.resukisu.ui.component.LiquidGlassNavBar
 import com.resukisu.resukisu.ui.screen.BottomBarDestination
 import com.resukisu.resukisu.ui.theme.ThemeConfig
 import com.resukisu.resukisu.ui.util.LocalHandlePageChange
 import com.resukisu.resukisu.ui.util.LocalSelectedPage
+import com.resukisu.resukisu.ui.util.LocalWallpaperBackdrop
 import com.resukisu.resukisu.ui.util.getKpmModuleCount
 import com.resukisu.resukisu.ui.util.getModuleCount
 import com.resukisu.resukisu.ui.util.getSuperuserCount
@@ -61,16 +63,13 @@ fun NavigationBar(
 ) {
     val activity = LocalContext.current as MainActivity
 
-    // 是否隐藏 badge
     val isHideOtherInfo by activity.settingsStateFlow
         .map { it.isHideOtherInfo }
         .collectAsState(initial = false)
 
-    // 翻页处理
     val page = LocalSelectedPage.current
     val handlePageChange = LocalHandlePageChange.current
 
-    // 收集计数数据
     var superuserCountSaved by rememberSaveable { mutableIntStateOf(0) }
     var moduleCountSaved by rememberSaveable { mutableIntStateOf(0) }
     var kpmModuleCountSaved by rememberSaveable { mutableIntStateOf(0) }
@@ -94,42 +93,54 @@ fun NavigationBar(
         }
     }
 
-    val hazeStyle = if (ThemeConfig.backgroundImageLoaded) HazeStyle(
-        backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(
-            alpha = 0.8f
-        ),
-        tint = HazeTint(Color.Transparent)
-    ) else null
-
-    var modifier = Modifier.windowInsetsPadding(
+    val modifier = Modifier.windowInsetsPadding(
         WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)
     )
 
-    if (ThemeConfig.backgroundImageLoaded && hazeStyle != null && hazeState != null)
-        modifier = modifier.hazeEffect(hazeState) {
-            style = hazeStyle
-            blurRadius = 30.dp
-            noiseFactor = 0f
-        }
-
     if (isBottomBar) {
-        FlexibleBottomAppBar(
-            modifier = modifier,
-            containerColor = if (ThemeConfig.backgroundImageLoaded) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        ) {
-            destinations.forEachIndexed { index, destination ->
-                BottomBarNavigationItem(
-                    isSelected = index == page,
-                    destination = destination,
-                    onClick = {
-                        handlePageChange(index)
-                    },
-                    kpmModuleCount = kpmModuleCount,
-                    superuserCount = superuserCount,
-                    moduleCount = moduleCount,
-                    isHideOtherInfo = isHideOtherInfo,
-                )
+        if (ThemeConfig.backgroundImageLoaded) {
+            // Liquid glass navigation bar
+            val backdrop = LocalWallpaperBackdrop.current
+            LiquidGlassNavBar(
+                selectedIndex = page,
+                destinations = destinations,
+                backdrop = backdrop,
+                onTabSelected = handlePageChange,
+                superuserCount = superuserCount,
+                moduleCount = moduleCount,
+                kpmModuleCount = kpmModuleCount,
+                isHideOtherInfo = isHideOtherInfo,
+                modifier = modifier
+            )
+        } else {
+            val hazeStyle = HazeStyle(
+                backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.8f),
+                tint = HazeTint(Color.Transparent)
+            )
+            val hazeModifier = if (hazeState != null) {
+                modifier.hazeEffect(hazeState) {
+                    style = hazeStyle
+                    blurRadius = 30.dp
+                    noiseFactor = 0f
+                }
+            } else modifier
+
+            FlexibleBottomAppBar(
+                modifier = hazeModifier,
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                destinations.forEachIndexed { index, destination ->
+                    BottomBarNavigationItem(
+                        isSelected = index == page,
+                        destination = destination,
+                        onClick = { handlePageChange(index) },
+                        kpmModuleCount = kpmModuleCount,
+                        superuserCount = superuserCount,
+                        moduleCount = moduleCount,
+                        isHideOtherInfo = isHideOtherInfo,
+                    )
+                }
             }
         }
     } else {
@@ -147,9 +158,7 @@ fun NavigationBar(
                 NavigationRailItem(
                     isSelected = index == page,
                     destination = destination,
-                    onClick = {
-                        handlePageChange(index)
-                    },
+                    onClick = { handlePageChange(index) },
                     kpmModuleCount = kpmModuleCount,
                     superuserCount = superuserCount,
                     moduleCount = moduleCount,
